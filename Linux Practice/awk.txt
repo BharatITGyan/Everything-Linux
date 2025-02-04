@@ -1,0 +1,118 @@
+AWK :- We can use awk commands to search in the files and print results in our required format. AWK provides more convinient way for file processing than our requglar linux commands. Most commonly used in shell scripting if we want to handle very large files.
+
+Note: 
+1. Normal Bash commands like echo won't work in AWK. 
+2. $0 represents total line/record.
+
+Processing Tabular Data by using awk: While procesing tabular data
+$0 --> Represents Each Line/Record 
+$1 --> Represents First Field in the current line/record 
+$2 --> Represents Second Field in the current line/record 
+$3 --> Represents Third Field in the current line/record
+
+root@BharatITgyan:~# awk '{print $1}' emp.txt --> It will display only first Column
+root@BharatITgyan:~# awk '{print $1" "$3}' emp.txt --> It will Print 1st and 3rd Columns Data
+
+Processing CSV File Data: 
+If, is the separator between the values, then such type of file is called csv file. 
+CSV - Comma Separated Values
+Bydefault tab is separator in awk. Instead of tab if we are using any separator then we should use either -F option or FS variable. FS is predefined variable in awk.
+
+emp.csv
+eno,ename,esal,eaddr 
+100,Sunny,1000,Mumbai 
+200,Bunny,2000,Hyderabad 
+300,Chinny,3000,Hyderabad 
+400,Vinny,4000,Chennai 
+500,Pinny,5000,Mumbai
+ 
+root@BharatITgyan:~# awk -F "," '{print $1}' emp.csv -->It will display only first column 
+root@BharatITgyan:~# awk -F "," '{print $2,$4}' emp.csv --> It will print 2nd and 4th column
+root@BharatITgyan:~# awk 'NR!=1{print $0}' FS="," emp.csv --> to ptint data without header
+
+Note: With NR variable we can use all relational operators. 
+		NR!=1, NR==1, NR<1, NR<=1, NR>1,NR>=1
+
+root@BharatITgyan:~# awk 'NR>2{print $0}' FS="," emp.csv
+root@BharatITgyan:~# awk 'NR>2{print $1}' FS="," emp.csv
+
+root@BharatITgyan:~# awk 'NR==2 || NR==4 {print $1}' FS="," emp.csv
+100
+300
+root@BharatITgyan:~# awk 'NR>2 && NR>4 {print $0}' FS="," emp.csv
+400,Vinny,4000,Chennai
+500,Pinny,5000,Mumbai
+root@BharatITgyan:~# awk 'NR>2 && NR>4 {print $1}' FS="," emp.csv
+400
+500
+root@BharatITgyan:~# awk 'NR==2,NR==4 {print $0}' FS=',' emp.csv
+100,Sunny,1000,Mumbai
+200,Bunny,2000,Hyderabad
+300,Chinny,3000,Hyderabad
+
+
+
+Filter Data based on given Condition:
+1) List out all Employees where eaddr is Hyderabad: 
+awk '$4==",Hyderabad"{print $0}' FS="," emp.csv
+
+2) List out all employees where salary is greater than 2500 without header:
+root@BharatITgyan:~# awk 'NR!=1 && $3>2500 {print $0}' FS="," emp.csv
+300,Chinny,3000,Hyderabad
+400,Vinny,4000,Chennai
+500,Pinny,5000,Mumbai
+
+Display Records based on given Search String: 
+We have to specify the search string as follows 
+		/searchstring/
+
+root@BharatITgyan:~# awk '$3~/20/{print $0}' FS="," emp.csv
+200,Bunny,2000,Hyderabad
+root@BharatITgyan:~# awk '$1~/20/{print $0}' FS="," emp.csv
+200,Bunny,2000,Hyderabad
+201,Munny,6000,Chennai
+
+If search String needs to be Present in specific Column: 
+awk '/20/{print $0}' FS="," emp.csv 
+In total record inside any field if 20 is there, then display that record
+awk '$3~/20/{print $0}' FS="," emp.csv 
+If 3rd field contains 20 then only display that record.
+awk '$3!~/20/{print $0}' FS="," emp.csv 
+If 3rd field (column) does not contain 20, then only display that record.
+
+Increment Salary by 500 where Salary is Less than 3000: 
+awk -F "," '{if($3<3000) print $0}' emp.csv 
+awk -F "," '{if($3<3000) {$3=$3+500;print $0}}' emp.csv
+
+root@BharatITgyan:~# awk '{if($3<3000) print $0}' FS="," emp.csv
+100,Sunny,1000,Mumbai
+200,Bunny,2000,Hyderabad
+root@BharatITgyan:~# awk '{if($3<3000){$3=$3+500;print $0}}' FS="," emp.csv
+100 Sunny 1500 Mumbai
+200 Bunny 2500 Hyderabad
+
+
+x.txt
+-----
+BEGIN{
+	FS=",";
+	c=0;
+	}
+NR!=1{
+	if($3>3000)
+	{
+	c=c+1;
+	print $0;
+	}
+	}
+END{
+	print "The Total Number of employees whose salary> 3000:" c;
+	}
+
+root@BharatITgyan:~# awk -f x.txt emp.csv
+400,Vinny,4000,Chennai
+500,Pinny,5000,Mumbai
+201,Munny,6000,Chennai
+The Total Number of employees whose salary> 3000:3
+
+
